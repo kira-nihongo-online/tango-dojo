@@ -552,32 +552,31 @@ function init(){
 // 共通再生（安定版）
 // ------------------------------
 function speak(text, voice, lang){
+
   if(!text) return;
 
   const uttr = new SpeechSynthesisUtterance(text);
+
   uttr.lang = lang;
+
+  uttr.rate = 1;
+  uttr.pitch = 1;
+  uttr.volume = 1;
 
   if(voice){
     uttr.voice = voice;
-    uttr.voiceURI = voice.name;
+    uttr.voiceURI = voice.voiceURI;
   }
 
-console.log(uttr.voice);
+  console.log(uttr.voice);
 
   speechSynthesis.cancel();
-  speechSynthesis.speak(uttr);
+
+  setTimeout(() => {
+    speechSynthesis.speak(uttr);
+  }, 50);
+
 }
-
-  return {
-    init,
-    speakJP,
-    speakTH
-  };
-})();
-
-window.addEventListener("load", () => {
-  Voice.init();
-});
 
 // ==============================
 // 【ロゴ】読み込み
