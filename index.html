@@ -565,7 +565,10 @@ function speak(text, voice, lang){
 console.log(uttr.voice);
 
   speechSynthesis.cancel();
+
+setTimeout(() => {
   speechSynthesis.speak(uttr);
+}, 50);
 }
 
   return {
