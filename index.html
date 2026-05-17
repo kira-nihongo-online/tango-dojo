@@ -693,9 +693,13 @@ document.getElementById("settingBtn").addEventListener("click", (e) => {
 async function initApp() {
 
   // ① データ取得
-  const data = [];
+  
+  const response = await fetch('https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec');
+
+  const data = await response.json();
 
   cards = data || [];
+  
 
   const settings = getSettings();
 
