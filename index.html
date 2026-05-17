@@ -709,10 +709,10 @@ async function initApp() {
 
   isFront = true;
 
-  const promises = [];
-  cards.forEach(c=>{
-    if(isValidId(c.meaningImg)) promises.push(getImageCached(c.meaningImg));
-    if(isValidId(c.hiraImg))    promises.push(getImageCached(c.hiraImg));
+//  const promises = [];
+//  cards.forEach(c=>{
+//    if(isValidId(c.meaningImg)) promises.push(getImageCached(c.meaningImg));
+//    if(isValidId(c.hiraImg))    promises.push(getImageCached(c.hiraImg));
   });
 
  // await Promise.all(promises);
@@ -736,7 +736,7 @@ async function initApp() {
 
   // ④ 初回表示（ここだけ）
   isFirstLoad = false;
-//  showCard();
+  showCard();
  
   isReady = true;  // ←追加
 
