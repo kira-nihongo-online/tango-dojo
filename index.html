@@ -578,6 +578,18 @@ function speak(text, voice, lang){
 
 }
 
+return {
+  init,
+  speakJP,
+  speakTH
+};
+
+})();
+
+window.addEventListener("load", () => {
+  Voice.init();
+});
+
 // ==============================
 // 【ロゴ】読み込み
 // ==============================
