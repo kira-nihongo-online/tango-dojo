@@ -514,11 +514,11 @@ function init(){
 
     // 日本語（Nanami固定）
     voiceJP =
-      voices.find(v => v.name.includes("Haruka"));
+      voices.find(v => v.name === "Microsoft Haruka - Japanese (Japan)");
 
     // タイ語（Premwadee固定）
     voiceTH =
-      voices.find(v => v.name.includes("Premwadee"));
+      voices.find(v => v.name === "Microsoft Premwadee - Thai (Thailand)");      
 
     if(voices.length > 0){
       ready = true;
@@ -565,10 +565,7 @@ function speak(text, voice, lang){
 console.log(uttr.voice);
 
   speechSynthesis.cancel();
-
-setTimeout(() => {
   speechSynthesis.speak(uttr);
-}, 50);
 }
 
   return {
