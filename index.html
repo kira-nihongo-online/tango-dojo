@@ -525,7 +525,7 @@ const Voice = (function(){
           v.name === "Microsoft Premwadee - Thai (Thailand)"
         );
 
-      if(voices.length > 0){
+      if(voiceJP && voiceTH){
         ready = true;
       }
 
@@ -557,6 +557,8 @@ const Voice = (function(){
   // 共通再生
   // ------------------------------
   function speak(text, voice, lang){
+
+    if(!ready) return;
 
     if(!text) return;
 
