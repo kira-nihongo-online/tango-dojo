@@ -522,7 +522,7 @@ const Voice = (function(){
       voiceTH =
           voices.find(v => v.name.includes("Premwadee"));
 
-      if(voiceJP && voiceTH){
+      if(voiceJP || voiceTH){
         ready = true;
       }
 
