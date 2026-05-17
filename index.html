@@ -703,10 +703,6 @@ async function initApp() {
 
   const settings = getSettings();
 
-  if(settings.order === "random"){
-    cards.sort(() => Math.random() - 0.5);
-  }
-
   isFront = true;
 
   // ② ロゴ表示時間
