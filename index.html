@@ -560,6 +560,9 @@ const Voice = (function(){
 
     if(!text) return;
 
+    // ← Edge対策
+    speechSynthesis.getVoices();
+
     const uttr = new SpeechSynthesisUtterance(text);
 
     uttr.lang = lang;
@@ -570,14 +573,11 @@ const Voice = (function(){
 
     if(voice){
       uttr.voice = voice;
-      uttr.voiceURI = voice.voiceURI;
     }
 
-    console.log(uttr.voice);
+    console.log(voice);
 
-    setTimeout(() => {
-      speechSynthesis.speak(uttr);
-    }, 50);
+    speechSynthesis.speak(uttr);
 
   }
 
