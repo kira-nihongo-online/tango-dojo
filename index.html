@@ -378,6 +378,9 @@ function showCard(){
       imgObj2.onload = () => {
         if(currentIndex2 !== index) return;
         img.src = url;
+
+        console.log(img.src);
+
         img.style.display = "block";
       };
 
