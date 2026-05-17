@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  background:#f5f5f5;
+  overflow: hidden;
+}
+
+#card{
+  width:100%;
+  height:calc(100vh - 60px);
+  margin-top:20px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;  /* ←追加 */
+  align-items:center;      /* ←追加 */
+
+  transform: translateY(40px);
+
+}
+
+#front, #back{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width:100%;
+}
+ 
+.top{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  height: 200px;
+
+  margin-top:60px;  /* ←ここに移動 */
+
+}
+
+.bottom{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  text-align:center;
+  height: 300px;
+}
+
+#jpImg{
+  height: 180px;      /* ←好きなサイズに調整OK */
+  object-fit: contain;
+}
+
+#meaningFront, #meaningBack{
+  max-width:300px;
+  margin:20px auto;
+}
+
+#thai{ font-size:60px; }
+#eng{ font-size:40px; color:#555; }
+#memo{ font-size:25px; color:#777; }
+
+#topBar{
+  position:absolute;
+  top:10px;
+  left:0;
+  width:100%;
+  display:flex;
+  padding:0 20px;
+  font-size:16px;
+  color:#666;
+}
+
+#centerTitle{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+#rightInfo{
+  margin-left:auto;
+}
+
+/* ボタン */
+#checkBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:60px;
+  height:60px;
+  border:none;
+  border-radius:12px;
+  background:#222;
+  color:#fff;
+  font-size:24px;
+}
+
+#speakBtn{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  width:60px;
+  height:60px;
+  border:none;
+  border-radius:12px;
+  background:#222;
+  color:#fff;
+  font-size:24px;
+}
+
+/* 上のチェック非表示 */
+#rightInfo button{
+  display:none;
+}
+
+/* ===================== ヘッダー土台 ===================== */
+#header {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+#header {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+#header-left,
+#header-center,
+#header-right{
+  display:flex;
+  align-items:center;
+}
+
+#header-left{
+  flex: 0 0 auto;
+}
+
+#header-center{
+  flex: 1;
+  justify-content: center;
+}
+
+#header-right{
+  flex: 0 0 auto;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+#header-left img {
+  height: 40px;
+  object-fit: contain;
+  margin-right: 10px;  /* ←これ追加 */
+}
+
+#loading {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+#loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.2s ease;
+  z-index: 2000;
+}
+
+#settingBtn{
+  margin-left:10px;
+  font-size:25px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  color:#1976d2;   /* ←これが色 */
+  line-height:1;
+}
+
+#settingsModal {
+  display: none;
+}
+
+.setting-row{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.setting-row .label{
+  width:60px;
+}
+
+</style>
+</head>
+
+<body tabindex="0">
+
+<div id="card">
+
+  <!-- ===================== 上部ヘッダー ===================== -->
+<div id="header" style="display:none;">
+
+  <div id="header-left">
+   <img id="headerLogo">
+  </div>
+
+  <div id="header-center">
+   <span id="title"></span>
+  </div>
+
+  <div id="header-right">
+  <span id="progress"></span>
+   <button id="settingBtn">⚙</button>
+  </div>
+
+</div>
+
+  <!-- ==============================
+  【ロゴ】初回表示
+  ============================== -->
+  <div id="loading" style="display:none;">
+    <img id="logoImg" style="width:200px;">
+  </div>
+
+  <!-- ==============================
+  【カード】最初は非表示
+  ============================== -->
+  <div id="front" style="display:none;">
+    <div class="top">
+      <img id="meaningFront">
+    </div>
+    <div class="bottom">
+      <img id="jpImg" style="display:none;">
+    </div>
+  </div>
+
+  <div id="back" style="display:none;">
+    <div class="top">
+      <img id="meaningBack">
+    </div>
+    <div class="bottom">
+      <div id="thai"></div>
+      <div id="eng"></div>
+      <div id="memo"></div>
+    </div>
+  </div>
+
+  <button id="speakBtn">🔊</button>
+
+</div>
+
+<script>
+let cards = [];
+let index = 0;
+let isFront = true;
+
+let skipVoice = false;
+
+let isFirstLoad = true;
+
+let isReady = false;
+
+const imageCache = {};
+
+// ==============================
+// URL lesson取得
+// ==============================
+function getLesson(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get("lesson");
+}
+
+// ==============================
+// 【画像IDチェック】空データ除外
+// ==============================
+function isValidId(v){
+  return v && v.trim() !== "" && v !== "null";
+}
+
+// ==============================
+// 【画像】キャッシュ取得
+// ==============================
+//function getImageCached(fileId){
+//  return new Promise((resolve)=>{
+//    if(!fileId) return resolve(null);
+//    if(imageCache[fileId]) return resolve(imageCache[fileId]);
+
+//    google.script.run.withSuccessHandler(function(base64){
+//      const src = "data:image/png;base64," + base64;
+//      imageCache[fileId] = src;
+//      resolve(src);
+//    }).getImage(fileId);
+//  });
+//}
+
+// ==============================
+// 【表示】カード描画（完全版・安定版）
+// ==============================
+function showCard(){
+  if(!cards.length) return;
+
+  const c = cards[index];
+
+  // ===== デバッグ =====
+  console.log("index:", index);
+  console.log("meaningImg:", c.meaningImg);
+  console.log("hiraImg:", c.hiraImg);
+  console.log("memo:", c.memo);
+
+  const front = document.getElementById("front");
+  const back  = document.getElementById("back");
+
+  front.style.display = "none";
+  back.style.display = "none";
+
+  // =========================
+  // 表
+  // =========================
+  if(isFront){
+
+    const meaningFront = document.getElementById("meaningFront");
+    meaningFront.src = "";
+
+    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
+    const currentIndex = index;
+
+    if(meaningUrl){
+      const imgObj = new Image();
+
+      imgObj.onload = () => {
+        if(currentIndex !== index) return;
+        meaningFront.src = meaningUrl;
+      };
+
+      imgObj.src = meaningUrl;
+
+    }else{
+      meaningFront.src = "";
+    }
+
+    const img = document.getElementById("jpImg");
+    img.src = "";
+    img.style.display = "none";
+
+    const url = isValidId(c.hiraImg) ? imageCache[c.hiraImg] : "";
+
+    if(url){
+      const currentIndex2 = index;
+
+      const imgObj2 = new Image();
+
+      imgObj2.onload = () => {
+        if(currentIndex2 !== index) return;
+        img.src = url;
+        img.style.display = "block";
+      };
+
+      imgObj2.src = url;
+    }
+
+    front.style.display = "flex";
+
+  }
+
+  // =========================
+  // 裏
+  // =========================
+  else{
+
+    const meaningBack = document.getElementById("meaningBack");
+    meaningBack.src = "";
+
+    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
+    const currentIndex = index;
+
+    if(meaningUrl){
+      const imgObj = new Image();
+
+      imgObj.onload = () => {
+        if(currentIndex !== index) return;
+        meaningBack.src = meaningUrl;
+      };
+
+      imgObj.src = meaningUrl;
+
+    }else{
+      meaningBack.src = "";
+    }
+
+    const settings = getSettings();
+    const mode = settings.mode || "jp2th";
+
+    document.getElementById("thai").textContent = c.thai || "";
+    document.getElementById("eng").textContent  = c.eng || "";
+    
+    if(settings.memo === "on"){
+      document.getElementById("memo").style.display = "block";
+      document.getElementById("memo").textContent = c.memo || "";
+    }else{
+      document.getElementById("memo").style.display = "none";
+    }
+
+    back.style.display = "flex";
+  }
+
+  // =========================
+  // UI
+  // =========================
+  document.getElementById("progress").textContent =
+    (index + 1) + "/" + cards.length + (isFront ? "（日本語）" : "（タイ語）");
+
+  updateTitle();
+
+  // =========================
+  // 音声
+  // =========================
+  if(isFirstLoad){
+    isFirstLoad = false;
+  }else{
+
+    const settings = getSettings();
+
+    if(settings.sound === "on" && !skipVoice){
+
+      if(isFront){
+        setTimeout(() => {
+          Voice.speakJP(cards[index].hira || "");
+        }, 50);
+      }else{
+        setTimeout(() => {
+          Voice.speakTH(cards[index].thai || "");
+        }, 50);
+      }
+
+    }
+  }
+
+  skipVoice = false;
+}
+
+// クリック
+document.body.addEventListener("click", function(e){
+
+  // ★ 追加（これが超重要）
+  if (e.target.closest("#settingModal")) return;
+
+  if (e.target.closest("#checkBtn")) return;
+  if (e.target.closest("#settingBtn")) return;
+
+  if(!cards.length) return;
+
+  if(isFront){
+    isFront = false;
+  }else{
+    index = (index + 1) % cards.length;
+    isFront = true;
+  }
+
+  showCard();
+});
+
+// ==============================
+// Voice Controller（JP+TH / 女性音声固定）
+// ==============================
+const Voice = (function(){
+  let ready = false;
+  let voiceJP = null;
+  let voiceTH = null;
+
+// ------------------------------
+// 初期化（Windows音声固定・完成版）
+// ------------------------------
+function init(){
+
+  const setVoices = () => {
+
+    const voices = speechSynthesis.getVoices();
+
+    console.table(
+      voices.map(v => ({
+        name: v.name,
+        lang: v.lang
+      }))
+    );
+
+    // 日本語（Nanami固定）
+    voiceJP =
+      voices.find(v => v.name.includes("Haruka"));
+
+    // タイ語（Premwadee固定）
+    voiceTH =
+      voices.find(v => v.name.includes("Premwadee"));
+
+    if(voices.length > 0){
+      ready = true;
+    }
+
+    console.log(voiceJP);
+    console.log(voiceTH);
+
+  };
+
+  setVoices();
+
+  speechSynthesis.onvoiceschanged = setVoices;
+}
+
+  // ------------------------------
+  // 日本語再生
+  // ------------------------------
+  function speakJP(text){
+    speak(text, voiceJP, "ja-JP");
+  }
+
+  // ------------------------------
+  // タイ語再生
+  // ------------------------------
+  function speakTH(text){
+    speak(text, voiceTH, "th-TH");
+  }
+
+// ------------------------------
+// 共通再生（安定版）
+// ------------------------------
+function speak(text, voice, lang){
+  if(!text) return;
+
+  const uttr = new SpeechSynthesisUtterance(text);
+  uttr.lang = lang;
+
+  if(voice){
+    uttr.voice = voice;
+    uttr.voiceURI = voice.name;
+  }
+
+console.log(uttr.voice);
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(uttr);
+}
+
+  return {
+    init,
+    speakJP,
+    speakTH
+  };
+})();
+
+window.addEventListener("load", () => {
+  Voice.init();
+});
+
+// ==============================
+// 【ロゴ】読み込み
+// ==============================
+//const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
+
+//google.script.run.withSuccessHandler(function(base64){
+//  document.getElementById("logoImg").src =
+//    "data:image/png;base64," + base64;
+
+//    setHeaderLogo();
+//}).getImage(LOGO_FILE_ID);
+
+// ===================== タイトル更新 =====================
+function updateTitle() {
+  const titleEl = document.getElementById("title");
+
+  const card = cards[index];
+
+  // A列（教材） + C列（課）
+  titleEl.textContent = `${card.title} - ${card.lesson}`;
+}
+
+// ===================== ヘッダーロゴ設定 =====================
+function setHeaderLogo() {
+  const headerLogo = document.getElementById("headerLogo");
+  const logoImg = document.getElementById("logoImg");
+
+  headerLogo.src = logoImg.src;
+}
+
+// ==============================
+// 【音声】現在カードの音声再生（手動用）
+// ==============================
+function playCurrentVoice(){
+  if(!cards.length) return;
+
+  const c = cards[index];
+
+  if(isFront){
+    Voice.speakJP(c.hira || "");
+  }else{
+    Voice.speakTH(c.thai || "");
+  }
+}
+
+// ==============================
+// 【音声ボタン】クリック再生
+// ==============================
+document.getElementById("speakBtn").addEventListener("click", (e) => {
+
+  e.stopPropagation(); // ←カード送り防止
+
+  playCurrentVoice();
+
+});
+
+// ==============================
+// 【設定】開く＋状態反映
+// ==============================
+function openSettings(){
+  const settings = getSettings();
+
+  document.querySelector(`input[name="sound"][value="${settings.sound}"]`).checked = true;
+  document.querySelector(`input[name="memo"][value="${settings.memo}"]`).checked = true;
+
+  const orderEl = document.querySelector(`input[name="order"][value="${settings.order}"]`);
+  if(orderEl) orderEl.checked = true;
+
+  document.getElementById("settingModal").style.display = "block";
+}
+
+// ==============================
+// 【設定】閉じる
+// ==============================
+function closeSettings(){
+  document.getElementById("settingModal").style.display = "none";
+}
+
+// ==============================
+// 【設定】保存
+// ==============================
+function saveSettings(){
+  const sound = document.querySelector('input[name="sound"]:checked').value;
+  const memo  = document.querySelector('input[name="memo"]:checked').value;
+  const order = document.querySelector('input[name="order"]:checked').value;
+
+  localStorage.setItem("settings", JSON.stringify({
+    sound: sound,
+    memo: memo,
+    order: order
+  }));
+
+  closeSettings();
+}
+
+// ==============================
+// 【設定】取得（修正版）
+// ==============================
+function getSettings() {
+  const settings = JSON.parse(localStorage.getItem("settings")) || {
+    sound: "on",
+    memo: "on",
+    order: "normal"
+  };
+
+  document.querySelectorAll('input[name="sound"]').forEach(r => {
+    r.checked = (r.value === settings.sound);
+  });
+
+  document.querySelectorAll('input[name="memo"]').forEach(r => {
+    r.checked = (r.value === settings.memo);
+  });
+
+  document.querySelectorAll('input[name="order"]').forEach(r => {
+    r.checked = (r.value === settings.order);
+  });
+
+  return settings;
+}
+
+// 👇そのまま残す
+document.getElementById("settingBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  openSettings();
+});
+
+// =========================
+// 初期起動 一本化（完成版）
+// =========================
+async function initApp() {
+
+  // ① データ取得
+  const data = [];
+
+  cards = data || [];
+
+  const settings = getSettings();
+
+  if(settings.order === "random"){
+    cards.sort(() => Math.random() - 0.5);
+  }
+
+  isFront = true;
+
+  const promises = [];
+  cards.forEach(c=>{
+    if(isValidId(c.meaningImg)) promises.push(getImageCached(c.meaningImg));
+    if(isValidId(c.hiraImg))    promises.push(getImageCached(c.hiraImg));
+  });
+
+ // await Promise.all(promises);
+
+  // ② ロゴ表示時間
+  await new Promise(r => setTimeout(r, 800));
+
+  // ③ ロゴ消す
+  const loading = document.getElementById("loading");
+  const header = document.getElementById("header");
+
+  loading.style.opacity = "0";
+
+  await new Promise(r => setTimeout(r, 200));
+
+  loading.style.display = "none";
+
+  header.style.display = "flex";
+
+  document.getElementById("front").style.display = "flex";
+
+  // ④ 初回表示（ここだけ）
+  isFirstLoad = false;
+//  showCard();
+ 
+  isReady = true;  // ←追加
+
+    // ★ここ！！
+  document.body.focus();
+  window.focus();
+
+  // ★ここに入れる！！！！
+  document.addEventListener("keydown", function(e){
+
+    console.log(e.key);  // ←追加
+
+    if(!isReady) return;
+
+    if(e.key === "Enter"){
+      if(isFront){
+        isFront = false;
+      }else{
+        isFront = true;
+        index = (index + 1) % cards.length;
+      }
+      showCard();
+    }
+
+    if(e.key === "Backspace"){
+      e.preventDefault();
+
+    if(isFront){
+      // 表（日本語） → 前のカードの裏（タイ語）
+      index = (index - 1 + cards.length) % cards.length;
+      isFront = false;
+
+    }else{
+      // 裏（タイ語） → 同じカードの表（日本語）
+      isFront = true;
+    }
+
+      showCard();
+     
+    }
+
+  });
+
+}
+
+initApp();  
+
+</script>
+
+<!-- ==============================
+【設定モーダル】
+============================== -->
+<div id="settingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000;">
+
+  <div style="background:#fff; width:90%; max-width:400px; margin:80px auto; padding:20px; border-radius:10px; max-height:80vh; overflow:auto;">
+
+    <h3>設定</h3>
+
+   
+
+    <!-- 音声 -->
+    <div class="setting-row">
+      <span class="label">音声：</span>
+      <label><input type="radio" name="sound" value="on"> ON</label>
+      <label><input type="radio" name="sound" value="off"> OFF</label>
+    </div>
+
+    <!-- メモ -->
+    <div class="setting-row">
+      <span class="label">メモ：</span>
+      <label><input type="radio" name="memo" value="on"> ON</label>
+      <label><input type="radio" name="memo" value="off"> OFF</label>
+    </div>
+
+    <!-- ★ここに追加 -->
+    <div class="setting-row">
+      <span class="label">順番：</span>
+      <label><input type="radio" name="order" value="normal"> 通常</label>
+      <label><input type="radio" name="order" value="random"> ランダム</label>
+    </div>
+
+    <br>
+
+    <button onclick="saveSettings()">保存</button>
+    <button onclick="closeSettings()">閉じる</button>
+
+  </div>
+</div>
+</body>
+</html>
