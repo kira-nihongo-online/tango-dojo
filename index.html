@@ -291,18 +291,28 @@ function isValidId(v){
 // ==============================
 // 【画像】キャッシュ取得
 // ==============================
-//function getImageCached(fileId){
-//  return new Promise((resolve)=>{
-//    if(!fileId) return resolve(null);
-//    if(imageCache[fileId]) return resolve(imageCache[fileId]);
+async function getImageCached(fileId){
 
-//    google.script.run.withSuccessHandler(function(base64){
-//      const src = "data:image/png;base64," + base64;
-//      imageCache[fileId] = src;
-//      resolve(src);
-//    }).getImage(fileId);
-//  });
-//}
+  if(!fileId) return null;
+
+  if(imageCache[fileId]){
+    return imageCache[fileId];
+  }
+
+  const url =
+    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
+    + fileId;
+
+  const response = await fetch(url);
+
+  const base64 = await response.text();
+
+  const src = "data:image/png;base64," + base64;
+
+  imageCache[fileId] = src;
+
+  return src;
+}
 
 // ==============================
 // 【表示】カード描画（完全版・安定版）
