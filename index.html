@@ -516,13 +516,14 @@ const Voice = (function(){
       // 日本語
       voiceJP =
         voices.find(v =>
-          v.name === "Microsoft Nanami - Japanese (Japan)"
+          voices.find(v => v.name.includes("Nanami")) ||
+          voices.find(v => v.name.includes("Haruka"));
         );
 
       // タイ語
       voiceTH =
         voices.find(v =>
-          v.name === "Microsoft Premwadee - Thai (Thailand)"
+          voices.find(v => v.name.includes("Premwadee"));
         );
 
       if(voiceJP && voiceTH){
