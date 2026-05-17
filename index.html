@@ -575,8 +575,6 @@ const Voice = (function(){
 
     console.log(uttr.voice);
 
-    speechSynthesis.cancel();
-
     setTimeout(() => {
       speechSynthesis.speak(uttr);
     }, 50);
