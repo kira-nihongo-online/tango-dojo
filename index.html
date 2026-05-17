@@ -318,6 +318,9 @@ async function getImageCached(fileId){
 // 【表示】カード描画（完全版・安定版）
 // ==============================
 function showCard(){
+
+  console.log(imageCache);
+
   if(!cards.length) return;
 
   const c = cards[index];
