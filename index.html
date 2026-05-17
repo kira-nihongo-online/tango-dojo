@@ -492,47 +492,52 @@ document.body.addEventListener("click", function(e){
 // Voice Controller（JP+TH / 女性音声固定）
 // ==============================
 const Voice = (function(){
+
   let ready = false;
   let voiceJP = null;
   let voiceTH = null;
 
-// ------------------------------
-// 初期化（Windows音声固定・完成版）
-// ------------------------------
-function init(){
+  // ------------------------------
+  // 初期化
+  // ------------------------------
+  function init(){
 
-  const setVoices = () => {
+    const setVoices = () => {
 
-    const voices = speechSynthesis.getVoices();
+      const voices = speechSynthesis.getVoices();
 
-    console.table(
-      voices.map(v => ({
-        name: v.name,
-        lang: v.lang
-      }))
-    );
+      console.table(
+        voices.map(v => ({
+          name: v.name,
+          lang: v.lang
+        }))
+      );
 
-    // 日本語（Nanami固定）
-    voiceJP =
-      voices.find(v => v.name === "Microsoft Haruka - Japanese (Japan)");
+      // 日本語
+      voiceJP =
+        voices.find(v =>
+          v.name === "Microsoft Haruka - Japanese (Japan)"
+        );
 
-    // タイ語（Premwadee固定）
-    voiceTH =
-      voices.find(v => v.name === "Microsoft Premwadee - Thai (Thailand)");      
+      // タイ語
+      voiceTH =
+        voices.find(v =>
+          v.name === "Microsoft Premwadee - Thai (Thailand)"
+        );
 
-    if(voices.length > 0){
-      ready = true;
-    }
+      if(voices.length > 0){
+        ready = true;
+      }
 
-    console.log(voiceJP);
-    console.log(voiceTH);
+      console.log(voiceJP);
+      console.log(voiceTH);
 
-  };
+    };
 
-  setVoices();
+    setVoices();
 
-  speechSynthesis.onvoiceschanged = setVoices;
-}
+    speechSynthesis.onvoiceschanged = setVoices;
+  }
 
   // ------------------------------
   // 日本語再生
@@ -548,41 +553,41 @@ function init(){
     speak(text, voiceTH, "th-TH");
   }
 
-// ------------------------------
-// 共通再生（安定版）
-// ------------------------------
-function speak(text, voice, lang){
+  // ------------------------------
+  // 共通再生
+  // ------------------------------
+  function speak(text, voice, lang){
 
-  if(!text) return;
+    if(!text) return;
 
-  const uttr = new SpeechSynthesisUtterance(text);
+    const uttr = new SpeechSynthesisUtterance(text);
 
-  uttr.lang = lang;
+    uttr.lang = lang;
 
-  uttr.rate = 1;
-  uttr.pitch = 1;
-  uttr.volume = 1;
+    uttr.rate = 1;
+    uttr.pitch = 1;
+    uttr.volume = 1;
 
-  if(voice){
-    uttr.voice = voice;
-    uttr.voiceURI = voice.voiceURI;
+    if(voice){
+      uttr.voice = voice;
+      uttr.voiceURI = voice.voiceURI;
+    }
+
+    console.log(uttr.voice);
+
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      speechSynthesis.speak(uttr);
+    }, 50);
+
   }
 
-  console.log(uttr.voice);
-
-  speechSynthesis.cancel();
-
-  setTimeout(() => {
-    speechSynthesis.speak(uttr);
-  }, 50);
-
-}
-
-return {
-  init,
-  speakJP,
-  speakTH
-};
+  return {
+    init,
+    speakJP,
+    speakTH
+  };
 
 })();
 
