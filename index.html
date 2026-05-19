@@ -576,7 +576,11 @@ const Voice = (function(){
 
     console.log(voice);
 
-    speechSynthesis.speak(uttr);
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      speechSynthesis.speak(uttr);
+    }, 50);
 
   }
 
