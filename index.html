@@ -755,6 +755,20 @@ async function initApp() {
   });
   */
 
+const firstCard = cards[0];
+
+if(firstCard){
+
+  if(isValidId(firstCard.meaningImg)){
+    await getImageCached(firstCard.meaningImg);
+  }
+
+  if(isValidId(firstCard.hiraImg)){
+    await getImageCached(firstCard.hiraImg);
+  }
+
+}
+
 //await Promise.all(promises);
 
   // ② ロゴ表示時間
