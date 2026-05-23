@@ -759,15 +759,6 @@ async function initApp() {
 
   });
 
-  // 日本語画像（全部）
-  cards.forEach(c => {
-
-    if(isValidId(c.hiraImg)){
-      promises.push(getImageCached(c.hiraImg));
-    }
-
-  });
-
   await Promise.all(promises);
 
   // ② ロゴ表示時間
