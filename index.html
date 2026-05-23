@@ -740,7 +740,7 @@ cards.forEach(c => {
 
 });
 
-await Promise.all(promises);
+Promise.all(promises);
 
   // ② ロゴ表示時間
   await new Promise(r => setTimeout(r, 800));
