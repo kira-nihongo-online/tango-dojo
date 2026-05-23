@@ -378,6 +378,19 @@ if(isFront){
     ? imageCache[c.hiraImg]
     : "";
 
+   if(!url && isValidId(c.hiraImg)){
+
+    getImageCached(c.hiraImg).then(src => {
+
+      if(index !== currentIndex) return;
+
+      img.src = src;
+      img.style.display = "block";
+
+    });
+
+  }
+
   if(url){
 
   img.src = url;
