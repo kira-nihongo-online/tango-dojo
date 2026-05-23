@@ -307,6 +307,8 @@ async function getImageCached(fileId){
 
   const imageUrl = (await response.text()).trim();
 
+  console.log(imageUrl);
+
   imageCache[fileId] = imageUrl;
 
   return imageUrl;
@@ -766,7 +768,7 @@ async function initApp() {
 
   });
 
-  //await Promise.all(promises);
+  await Promise.all(promises);
 
   // ② ロゴ表示時間
   await new Promise(r => setTimeout(r, 800));
