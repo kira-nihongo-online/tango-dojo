@@ -320,18 +320,11 @@ async function getImageCached(fileId){
 // ==============================
 function showCard(){
 
-  console.log(imageCache);
-
   if(!cards.length) return;
 
   const c = cards[index];
 
   // ===== デバッグ =====
-  console.log("index:", index);
-  console.log("meaningImg:", c.meaningImg);
-  console.log("hiraImg:", c.hiraImg);
-  console.log("memo:", c.memo);
-
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
 
@@ -377,9 +370,7 @@ function showCard(){
       imgObj2.onload = () => {
         if(currentIndex2 !== index) return;
         img.src = url;
-
-        console.log(img.src);
-
+        
         img.style.display = "block";
       };
 
@@ -507,13 +498,6 @@ const Voice = (function(){
 
       const voices = speechSynthesis.getVoices();
 
-      console.table(
-        voices.map(v => ({
-          name: v.name,
-          lang: v.lang
-        }))
-      );
-
       // 日本語
       voiceJP =      
           voices.find(v => v.name.includes("Nanami")) ||
@@ -526,9 +510,6 @@ const Voice = (function(){
       if(voiceJP || voiceTH){
         ready = true;
       }
-
-      console.log(voiceJP);
-      console.log(voiceTH);
 
     };
 
@@ -574,8 +555,6 @@ const Voice = (function(){
     if(voice){
       uttr.voice = voice;
     }
-
-    console.log(voice);
 
     speechSynthesis.cancel();
 
@@ -789,8 +768,6 @@ await Promise.all(promises);
 
   // ★ここに入れる！！！！
   document.addEventListener("keydown", function(e){
-
-    console.log(e.key);  // ←追加
 
     if(!isReady) return;
 
