@@ -396,12 +396,12 @@ if(isFront){
   }
 
   // cache済み → 即表示
-  if(url){
+if(url){
 
-    img.src = url;
-    img.style.display = "block";
+  img.src = url;
+  img.style.display = "block";
 
-  }
+}
 
   if(url){
 
@@ -775,8 +775,8 @@ async function initApp() {
 
   const promises = [];
 
-  // meaning画像（最初の3枚だけ）
-  cards.slice(0, 1)
+  // meaning画像（最初の1枚だけ）
+   cards.slice(0, 1).forEach(c => {
 
     if(isValidId(c.meaningImg)){
       promises.push(getImageCached(c.meaningImg));
