@@ -751,7 +751,7 @@ async function initApp() {
   const promises = [];
 
   // meaning画像（最初の3枚だけ）
-  cards.slice(0, 3).forEach(c => {
+  cards.slice(0, 1)
 
     if(isValidId(c.meaningImg)){
       promises.push(getImageCached(c.meaningImg));
