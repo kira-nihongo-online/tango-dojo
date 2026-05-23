@@ -356,27 +356,18 @@ if(isFront){
 
   }
 
-  // cache済みなら即表示
+  console.log(meaningUrl);
+
   if(meaningUrl){
 
-    const imgObj = new Image();
-
-    imgObj.onload = () => {
-
-      if(currentIndex !== index) return;
-
-      meaningFront.src = meaningUrl;
-
-    };
-
-    imgObj.src = meaningUrl;
+    meaningFront.src = meaningUrl;
 
   }else{
 
     meaningFront.src = "";
 
   }
-
+    
   const img = document.getElementById("jpImg");
   img.src = "";
   img.style.display = "none";
@@ -387,22 +378,10 @@ if(isFront){
 
   if(url){
 
-    const currentIndex2 = index;
+  img.src = url;
+  img.style.display = "block";
 
-    const imgObj2 = new Image();
-
-    imgObj2.onload = () => {
-
-      if(currentIndex2 !== index) return;
-
-      img.src = url;
-      img.style.display = "block";
-
-    };
-
-    imgObj2.src = url;
-
-  }
+}
 
   front.style.display = "flex";
 
