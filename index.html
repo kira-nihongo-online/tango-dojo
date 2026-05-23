@@ -741,35 +741,19 @@ async function initApp() {
 
   const promises = [];
 
-  /*
-  cards.forEach(c => {
+cards.forEach(c => {
 
-    if(isValidId(c.meaningImg)){
-      promises.push(getImageCached(c.meaningImg));
-    }
-
-    if(isValidId(c.hiraImg)){
-      promises.push(getImageCached(c.hiraImg));
-    }
-
-  });
-  */
-
-const firstCard = cards[0];
-
-if(firstCard){
-
-  if(isValidId(firstCard.meaningImg)){
-    await getImageCached(firstCard.meaningImg);
+  if(isValidId(c.meaningImg)){
+    promises.push(getImageCached(c.meaningImg));
   }
 
-  if(isValidId(firstCard.hiraImg)){
-    await getImageCached(firstCard.hiraImg);
+  if(isValidId(c.hiraImg)){
+    promises.push(getImageCached(c.hiraImg));
   }
 
-}
+});
 
-//await Promise.all(promises);
+await Promise.all(promises);
 
   // ② ロゴ表示時間
   await new Promise(r => setTimeout(r, 800));
