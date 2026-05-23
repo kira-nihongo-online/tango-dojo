@@ -305,15 +305,12 @@ async function getImageCached(fileId){
 
   const response = await fetch(url);
 
-  const base64 = await response.text();
+    const url = await response.text();
 
+  imageCache[fileId] = url;
 
-  const src = "data:image/png;base64," + base64;
-
-  imageCache[fileId] = src;
-
-  return src;
-}
+  return url;
+  }
 
 // ==============================
 // 【表示】カード描画（完全版・安定版）
