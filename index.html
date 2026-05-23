@@ -593,8 +593,12 @@ const Voice = (function(){
 
 })();
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
+
   Voice.init();
+
+  await new Promise(r => setTimeout(r, 500));
+
 });
 
 // ==============================
