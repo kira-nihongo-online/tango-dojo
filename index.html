@@ -774,11 +774,13 @@ async function initApp() {
 
 cards.forEach(c => {
 
-  /*
-  if(isValidId(c.meaningImg)){
-    promises.push(getImageCached(c.meaningImg));
-  }
-  */
+    cards.slice(0, 3).forEach(c => {
+
+    if(isValidId(c.meaningImg)){
+      promises.push(getImageCached(c.meaningImg));
+    }
+
+  });
 
   if(isValidId(c.hiraImg)){
     promises.push(getImageCached(c.hiraImg));
