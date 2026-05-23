@@ -266,9 +266,7 @@ let index = 0;
 let isFront = true;
 
 let skipVoice = false;
-
 let isFirstLoad = true;
-
 let isReady = false;
 
 const imageCache = {};
@@ -307,15 +305,13 @@ async function getImageCached(fileId){
 
   const imageUrl = (await response.text()).trim();
 
-  console.log(imageUrl);
-
   imageCache[fileId] = imageUrl;
 
   return imageUrl;
 }
 
 // ==============================
-// 【表示】カード描画（完全版・安定版）
+// 【表示】カード描画
 // ==============================
 function showCard(){
 
@@ -323,89 +319,83 @@ function showCard(){
 
   const c = cards[index];
 
-  // ===== デバッグ =====
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
 
   front.style.display = "none";
   back.style.display = "none";
 
-// =========================
-// 表
-// =========================
-if(isFront){
+  // =========================
+  // 表
+  // =========================
+  if(isFront){
 
-  const meaningFront = document.getElementById("meaningFront");
-  meaningFront.src = "";
-
-  const currentIndex = index;
-
-  const meaningUrl = isValidId(c.meaningImg)
-    ? imageCache[c.meaningImg]
-    : "";
-
-  // meaning画像が未取得なら後読み
-  if(!meaningUrl && isValidId(c.meaningImg)){
-
-    getImageCached(c.meaningImg).then(src => {
-
-      // 同じカード表示中だけ更新
-      if(index !== currentIndex) return;
-
-      meaningFront.src = src;
-
-    });
-
-  }
-
-  console.log(meaningUrl);
-
-  if(meaningUrl){
-
-    meaningFront.src = meaningUrl;
-
-  }else{
+    const meaningFront = document.getElementById("meaningFront");
+    const img = document.getElementById("jpImg");
 
     meaningFront.src = "";
+    img.src = "";
+    img.style.display = "none";
 
-  }
-    
-  const img = document.getElementById("jpImg");
+    const currentIndex = index;
 
-  img.src = "";
-  img.style.display = "none";
+    // -------------------------
+    // meaning画像
+    // -------------------------
+    const meaningUrl = isValidId(c.meaningImg)
+      ? imageCache[c.meaningImg]
+      : "";
 
-  const currentIndex2 = index;
+    // cache済み
+    if(meaningUrl){
 
-  const url = isValidId(c.hiraImg)
-    ? imageCache[c.hiraImg]
-    : "";
+      meaningFront.src = meaningUrl;
 
-  // cache無し → 後読み
-  if(!url && isValidId(c.hiraImg)){
+    }
+    // cache無し
+    else if(isValidId(c.meaningImg)){
 
-    getImageCached(c.hiraImg).then(src => {
+      getImageCached(c.meaningImg).then(src => {
 
-      if(currentIndex2 !== index) return;
+        if(currentIndex !== index) return;
 
-      img.src = src;
+        meaningFront.src = src;
+
+      });
+
+    }
+
+    // -------------------------
+    // 日本語画像
+    // -------------------------
+    const jpUrl = isValidId(c.hiraImg)
+      ? imageCache[c.hiraImg]
+      : "";
+
+    // cache済み
+    if(jpUrl){
+
+      img.src = jpUrl;
       img.style.display = "block";
 
-    });
+    }
+    // cache無し
+    else if(isValidId(c.hiraImg)){
+
+      getImageCached(c.hiraImg).then(src => {
+
+        if(currentIndex !== index) return;
+
+        img.src = src;
+        img.style.display = "block";
+
+      });
+
+    }
+
+    front.style.display = "flex";
 
   }
-
-  // cache済み → 即表示
-if(url){
-
-  img.src = url;
-  img.style.display = "block";
-
-}
-
-  front.style.display = "flex";
-
-}
 
   // =========================
   // 裏
@@ -415,34 +405,42 @@ if(url){
     const meaningBack = document.getElementById("meaningBack");
     meaningBack.src = "";
 
-    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
     const currentIndex = index;
 
+    const meaningUrl = isValidId(c.meaningImg)
+      ? imageCache[c.meaningImg]
+      : "";
+
     if(meaningUrl){
-      const imgObj = new Image();
 
-      imgObj.onload = () => {
+      meaningBack.src = meaningUrl;
+
+    }else if(isValidId(c.meaningImg)){
+
+      getImageCached(c.meaningImg).then(src => {
+
         if(currentIndex !== index) return;
-        meaningBack.src = meaningUrl;
-      };
 
-      imgObj.src = meaningUrl;
+        meaningBack.src = src;
 
-    }else{
-      meaningBack.src = "";
+      });
+
     }
 
     const settings = getSettings();
-    const mode = settings.mode || "jp2th";
 
     document.getElementById("thai").textContent = c.thai || "";
     document.getElementById("eng").textContent  = c.eng || "";
-    
+
     if(settings.memo === "on"){
+
       document.getElementById("memo").style.display = "block";
       document.getElementById("memo").textContent = c.memo || "";
+
     }else{
+
       document.getElementById("memo").style.display = "none";
+
     }
 
     back.style.display = "flex";
@@ -452,7 +450,8 @@ if(url){
   // UI
   // =========================
   document.getElementById("progress").textContent =
-    (index + 1) + "/" + cards.length + (isFront ? "（日本語）" : "（タイ語）");
+    (index + 1) + "/" + cards.length +
+    (isFront ? "（日本語）" : "（タイ語）");
 
   updateTitle();
 
@@ -463,67 +462,73 @@ if(url){
     isFirstLoad = false;
   }
 
-  {
+  const settings = getSettings();
 
-    const settings = getSettings();
+  if(settings.sound === "on" && !skipVoice){
 
-    if(settings.sound === "on" && !skipVoice){
+    if(isFront){
 
-      if(isFront){
-        setTimeout(() => {
-          Voice.speakJP(cards[index].hira || "");
-        }, 50);
-      }else{
-        setTimeout(() => {
-          Voice.speakTH(cards[index].thai || "");
-        }, 50);
-      }
+      setTimeout(() => {
+        Voice.speakJP(cards[index].hira || "");
+      }, 50);
 
-    }
-  }
+    }else{
 
-    skipVoice = false;
+      setTimeout(() => {
+        Voice.speakTH(cards[index].thai || "");
+      }, 50);
 
-    // =========================
-    // 次カード meaning画像 先読み
-    // =========================
-    const nextIndex = (index + 1) % cards.length;
-
-    const nextCard = cards[nextIndex];
-
-    if(
-      nextCard &&
-      isValidId(nextCard.meaningImg) &&
-      !imageCache[nextCard.meaningImg]
-    ){
-      getImageCached(nextCard.meaningImg);
     }
 
   }
 
+  skipVoice = false;
+
+  // =========================
+  // 次カード meaning画像先読み
+  // =========================
+  const nextIndex = (index + 1) % cards.length;
+
+  const nextCard = cards[nextIndex];
+
+  if(
+    nextCard &&
+    isValidId(nextCard.meaningImg) &&
+    !imageCache[nextCard.meaningImg]
+  ){
+    getImageCached(nextCard.meaningImg);
+  }
+
+}
+
+// ==============================
 // クリック
+// ==============================
 document.body.addEventListener("click", function(e){
 
-  // ★ 追加（これが超重要）
   if (e.target.closest("#settingModal")) return;
-
   if (e.target.closest("#checkBtn")) return;
   if (e.target.closest("#settingBtn")) return;
 
   if(!cards.length) return;
 
   if(isFront){
+
     isFront = false;
+
   }else{
+
     index = (index + 1) % cards.length;
     isFront = true;
+
   }
 
   showCard();
+
 });
 
 // ==============================
-// Voice Controller（JP+TH / 女性音声固定）
+// Voice Controller
 // ==============================
 const Voice = (function(){
 
@@ -531,23 +536,18 @@ const Voice = (function(){
   let voiceJP = null;
   let voiceTH = null;
 
-  // ------------------------------
-  // 初期化
-  // ------------------------------
   function init(){
 
     const setVoices = () => {
 
       const voices = speechSynthesis.getVoices();
 
-      // 日本語
-      voiceJP =      
-          voices.find(v => v.name.includes("Nanami")) ||
-          voices.find(v => v.name.includes("Haruka"));
+      voiceJP =
+        voices.find(v => v.name.includes("Nanami")) ||
+        voices.find(v => v.name.includes("Haruka"));
 
-      // タイ語
       voiceTH =
-          voices.find(v => v.name.includes("Premwadee"));
+        voices.find(v => v.name.includes("Premwadee"));
 
       if(voiceJP || voiceTH){
         ready = true;
@@ -560,30 +560,19 @@ const Voice = (function(){
     speechSynthesis.onvoiceschanged = setVoices;
   }
 
-  // ------------------------------
-  // 日本語再生
-  // ------------------------------
   function speakJP(text){
     speak(text, voiceJP, "ja-JP");
   }
 
-  // ------------------------------
-  // タイ語再生
-  // ------------------------------
   function speakTH(text){
     speak(text, voiceTH, "th-TH");
   }
 
-  // ------------------------------
-  // 共通再生
-  // ------------------------------
   function speak(text, voice, lang){
 
     if(!ready) return;
-
     if(!text) return;
 
-    // ← Edge対策
     speechSynthesis.getVoices();
 
     const uttr = new SpeechSynthesisUtterance(text);
@@ -614,6 +603,9 @@ const Voice = (function(){
 
 })();
 
+// ==============================
+// Voice初期化
+// ==============================
 window.addEventListener("load", async () => {
 
   Voice.init();
@@ -623,90 +615,104 @@ window.addEventListener("load", async () => {
 });
 
 // ==============================
-// 【ロゴ】読み込み
+// タイトル更新
 // ==============================
-//const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
-
-//google.script.run.withSuccessHandler(function(base64){
-//  document.getElementById("logoImg").src =
-//    "data:image/png;base64," + base64;
-
-//    setHeaderLogo();
-//}).getImage(LOGO_FILE_ID);
-
-// ===================== タイトル更新 =====================
 function updateTitle() {
+
   const titleEl = document.getElementById("title");
 
   const card = cards[index];
 
-  // A列（教材） + C列（課）
-  titleEl.textContent = `${card.title} - ${card.lesson}`;
+  titleEl.textContent =
+    `${card.title} - ${card.lesson}`;
+
 }
 
-// ===================== ヘッダーロゴ設定 =====================
+// ==============================
+// ヘッダーロゴ
+// ==============================
 function setHeaderLogo() {
+
   const headerLogo = document.getElementById("headerLogo");
   const logoImg = document.getElementById("logoImg");
 
   headerLogo.src = logoImg.src;
+
 }
 
 // ==============================
-// 【音声】現在カードの音声再生（手動用）
+// 手動音声
 // ==============================
 function playCurrentVoice(){
+
   if(!cards.length) return;
 
   const c = cards[index];
 
   if(isFront){
+
     Voice.speakJP(c.hira || "");
+
   }else{
+
     Voice.speakTH(c.thai || "");
+
   }
+
 }
 
 // ==============================
-// 【音声ボタン】クリック再生
+// 音声ボタン
 // ==============================
 document.getElementById("speakBtn").addEventListener("click", (e) => {
 
-  e.stopPropagation(); // ←カード送り防止
+  e.stopPropagation();
 
   playCurrentVoice();
 
 });
 
 // ==============================
-// 【設定】開く＋状態反映
+// 設定
 // ==============================
 function openSettings(){
+
   const settings = getSettings();
 
-  document.querySelector(`input[name="sound"][value="${settings.sound}"]`).checked = true;
-  document.querySelector(`input[name="memo"][value="${settings.memo}"]`).checked = true;
+  document.querySelector(
+    `input[name="sound"][value="${settings.sound}"]`
+  ).checked = true;
 
-  const orderEl = document.querySelector(`input[name="order"][value="${settings.order}"]`);
+  document.querySelector(
+    `input[name="memo"][value="${settings.memo}"]`
+  ).checked = true;
+
+  const orderEl = document.querySelector(
+    `input[name="order"][value="${settings.order}"]`
+  );
+
   if(orderEl) orderEl.checked = true;
 
   document.getElementById("settingModal").style.display = "block";
+
 }
 
-// ==============================
-// 【設定】閉じる
-// ==============================
 function closeSettings(){
+
   document.getElementById("settingModal").style.display = "none";
+
 }
 
-// ==============================
-// 【設定】保存
-// ==============================
 function saveSettings(){
-  const sound = document.querySelector('input[name="sound"]:checked').value;
-  const memo  = document.querySelector('input[name="memo"]:checked').value;
-  const order = document.querySelector('input[name="order"]:checked').value;
+
+  const sound =
+    document.querySelector('input[name="sound"]:checked').value;
+
+  const memo =
+    document.querySelector('input[name="memo"]:checked').value;
+
+  const order =
+    document.querySelector('input[name="order"]:checked').value;
 
   localStorage.setItem("settings", JSON.stringify({
     sound: sound,
@@ -715,17 +721,17 @@ function saveSettings(){
   }));
 
   closeSettings();
+
 }
 
-// ==============================
-// 【設定】取得（修正版）
-// ==============================
 function getSettings() {
-  const settings = JSON.parse(localStorage.getItem("settings")) || {
-    sound: "on",
-    memo: "on",
-    order: "normal"
-  };
+
+  const settings =
+    JSON.parse(localStorage.getItem("settings")) || {
+      sound: "on",
+      memo: "on",
+      order: "normal"
+    };
 
   document.querySelectorAll('input[name="sound"]').forEach(r => {
     r.checked = (r.value === settings.sound);
@@ -740,51 +746,61 @@ function getSettings() {
   });
 
   return settings;
+
 }
 
-// 👇そのまま残す
 document.getElementById("settingBtn").addEventListener("click", (e) => {
+
   e.stopPropagation();
+
   openSettings();
+
 });
 
 // =========================
-// 初期起動 一本化（完成版）
+// 初期起動
 // =========================
 async function initApp() {
 
-  // ① データ取得
-  
-  const response = await fetch('https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec');
+  // データ取得
+  const response = await fetch(
+    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec'
+  );
 
   const data = await response.json();
 
   cards = data || [];
-  
 
-  const settings = getSettings();
+  getSettings();
 
   isFront = true;
 
+  // =========================
+  // meaning画像だけ先読み
+  // =========================
   const promises = [];
 
-  // meaning画像（最初の1枚だけ）
-   cards.slice(0, 1).forEach(c => {
+  cards.slice(0, 1).forEach(c => {
 
     if(isValidId(c.meaningImg)){
-      promises.push(getImageCached(c.meaningImg));
+
+      promises.push(
+        getImageCached(c.meaningImg)
+      );
+
     }
 
   });
 
   await Promise.all(promises);
 
-  // ② ロゴ表示時間
+  // =========================
+  // ローディング
+  // =========================
   await new Promise(r => setTimeout(r, 800));
 
-  // ③ ロゴ消す
   const loading = document.getElementById("loading");
-  const header = document.getElementById("header");
+  const header  = document.getElementById("header");
 
   loading.style.opacity = "0";
 
@@ -796,55 +812,63 @@ async function initApp() {
 
   document.getElementById("front").style.display = "flex";
 
-  // ④ 初回表示（ここだけ）
+  // 初回表示
   showCard();
- 
-  isReady = true;  // ←追加
 
-    // ★ここ！！
+  isReady = true;
+
   document.body.focus();
   window.focus();
 
-  // ★ここに入れる！！！！
+  // =========================
+  // キーボード
+  // =========================
   document.addEventListener("keydown", function(e){
 
     if(!isReady) return;
 
     if(e.key === "Enter"){
+
       if(isFront){
+
         isFront = false;
+
       }else{
+
         isFront = true;
         index = (index + 1) % cards.length;
+
       }
+
       showCard();
+
     }
 
     if(e.key === "Backspace"){
+
       e.preventDefault();
 
-    if(isFront){
-      // 表（日本語） → 前のカードの裏（タイ語）
-      index = (index - 1 + cards.length) % cards.length;
-      isFront = false;
+      if(isFront){
 
-    }else{
-      // 裏（タイ語） → 同じカードの表（日本語）
-      isFront = true;
-    }
+        index = (index - 1 + cards.length) % cards.length;
+        isFront = false;
+
+      }else{
+
+        isFront = true;
+
+      }
 
       showCard();
-     
+
     }
 
   });
 
 }
 
-initApp();  
-
+initApp();
 </script>
-
 <!-- ==============================
 【設定モーダル】
 ============================== -->
