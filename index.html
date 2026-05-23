@@ -486,8 +486,24 @@ if(isFront){
     }
   }
 
-  skipVoice = false;
-}
+    skipVoice = false;
+
+    // =========================
+    // 次カード meaning画像 先読み
+    // =========================
+    const nextIndex = (index + 1) % cards.length;
+
+    const nextCard = cards[nextIndex];
+
+    if(
+      nextCard &&
+      isValidId(nextCard.meaningImg) &&
+      !imageCache[nextCard.meaningImg]
+    ){
+      getImageCached(nextCard.meaningImg);
+    }
+
+  }
 
 // クリック
 document.body.addEventListener("click", function(e){
