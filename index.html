@@ -305,7 +305,7 @@ async function getImageCached(fileId){
 
   const response = await fetch(url);
 
-    const url = await response.text();
+  const url = await response.text();
 
   imageCache[fileId] = url;
 
