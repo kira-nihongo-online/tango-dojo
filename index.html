@@ -381,7 +381,7 @@ if(isFront){
     ? imageCache[c.hiraImg]
     : "";
 
-  // cache無いなら後読み
+  // cache無し → 後読み
   if(!url && isValidId(c.hiraImg)){
 
     getImageCached(c.hiraImg).then(src => {
@@ -395,7 +395,7 @@ if(isFront){
 
   }
 
-  // cache済みなら即表示
+  // cache済み → 即表示
   if(url){
 
     img.src = url;
