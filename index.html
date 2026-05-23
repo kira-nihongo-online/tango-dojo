@@ -331,55 +331,85 @@ function showCard(){
   front.style.display = "none";
   back.style.display = "none";
 
-  // =========================
-  // 表
-  // =========================
-  if(isFront){
+// =========================
+// 表
+// =========================
+if(isFront){
 
-    const meaningFront = document.getElementById("meaningFront");
-    meaningFront.src = "";
+  const meaningFront = document.getElementById("meaningFront");
+  meaningFront.src = "";
 
-    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
-    const currentIndex = index;
+  const currentIndex = index;
 
-    if(meaningUrl){
-      const imgObj = new Image();
+  const meaningUrl = isValidId(c.meaningImg)
+    ? imageCache[c.meaningImg]
+    : "";
 
-      imgObj.onload = () => {
-        if(currentIndex !== index) return;
-        meaningFront.src = meaningUrl;
-      };
+  // meaning画像が未取得なら後読み
+  if(!meaningUrl && isValidId(c.meaningImg)){
 
-      imgObj.src = meaningUrl;
+    getImageCached(c.meaningImg).then(src => {
 
-    }else{
-      meaningFront.src = "";
-    }
+      // 同じカード表示中だけ更新
+      if(index !== currentIndex) return;
 
-    const img = document.getElementById("jpImg");
-    img.src = "";
-    img.style.display = "none";
+      meaningFront.src = src;
 
-    const url = isValidId(c.hiraImg) ? imageCache[c.hiraImg] : "";
-
-    if(url){
-      const currentIndex2 = index;
-
-      const imgObj2 = new Image();
-
-      imgObj2.onload = () => {
-        if(currentIndex2 !== index) return;
-        img.src = url;
-        
-        img.style.display = "block";
-      };
-
-      imgObj2.src = url;
-    }
-
-    front.style.display = "flex";
+    });
 
   }
+
+  // cache済みなら即表示
+  if(meaningUrl){
+
+    const imgObj = new Image();
+
+    imgObj.onload = () => {
+
+      if(currentIndex !== index) return;
+
+      meaningFront.src = meaningUrl;
+
+    };
+
+    imgObj.src = meaningUrl;
+
+  }else{
+
+    meaningFront.src = "";
+
+  }
+
+  const img = document.getElementById("jpImg");
+  img.src = "";
+  img.style.display = "none";
+
+  const url = isValidId(c.hiraImg)
+    ? imageCache[c.hiraImg]
+    : "";
+
+  if(url){
+
+    const currentIndex2 = index;
+
+    const imgObj2 = new Image();
+
+    imgObj2.onload = () => {
+
+      if(currentIndex2 !== index) return;
+
+      img.src = url;
+      img.style.display = "block";
+
+    };
+
+    imgObj2.src = url;
+
+  }
+
+  front.style.display = "flex";
+
+}
 
   // =========================
   // 裏
