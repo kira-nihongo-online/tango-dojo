@@ -371,23 +371,35 @@ if(isFront){
   }
     
   const img = document.getElementById("jpImg");
+
   img.src = "";
   img.style.display = "none";
+
+  const currentIndex2 = index;
 
   const url = isValidId(c.hiraImg)
     ? imageCache[c.hiraImg]
     : "";
 
-   if(!url && isValidId(c.hiraImg)){
+  // cache無いなら後読み
+  if(!url && isValidId(c.hiraImg)){
 
     getImageCached(c.hiraImg).then(src => {
 
-      if(index !== currentIndex) return;
+      if(currentIndex2 !== index) return;
 
       img.src = src;
       img.style.display = "block";
 
     });
+
+  }
+
+  // cache済みなら即表示
+  if(url){
+
+    img.src = url;
+    img.style.display = "block";
 
   }
 
