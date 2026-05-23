@@ -299,13 +299,26 @@ async function getImageCached(fileId){
     return imageCache[fileId];
   }
 
-  const url =
-    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
-    + fileId;
+    async function getImageCached(fileId){
 
-  const response = await fetch(url);
+    if(!fileId) return null;
 
-  const url = await response.text();
+    if(imageCache[fileId]){
+      return imageCache[fileId];
+    }
+
+    const apiUrl =
+      'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
+      + fileId;
+
+    const response = await fetch(apiUrl);
+
+    const imageUrl = (await response.text()).trim();
+
+    imageCache[fileId] = imageUrl;
+
+    return imageUrl;
+  }
 
   imageCache[fileId] = url;
 
@@ -769,9 +782,21 @@ async function initApp() {
 
   const promises = [];
 
-cards.forEach(c => {
+cards.slice(0, 3).forEach(c => {
 
-    cards.slice(0, 3).forEach(c => {
+    if(isValidId(c.meaningImg)){
+      promises.push(getImageCached(c.meaningImg));
+    }
+
+  });
+
+  cards.forEach(c => {
+
+    if(isValidId(c.hiraImg)){
+      promises.push(getImageCached(c.hiraImg));
+    }
+
+  });
 
     if(isValidId(c.meaningImg)){
       promises.push(getImageCached(c.meaningImg));
