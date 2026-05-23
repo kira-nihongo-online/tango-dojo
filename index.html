@@ -299,31 +299,18 @@ async function getImageCached(fileId){
     return imageCache[fileId];
   }
 
-    async function getImageCached(fileId){
+  const apiUrl =
+    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
+    + fileId;
 
-    if(!fileId) return null;
+  const response = await fetch(apiUrl);
 
-    if(imageCache[fileId]){
-      return imageCache[fileId];
-    }
+  const imageUrl = (await response.text()).trim();
 
-    const apiUrl =
-      'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
-      + fileId;
+  imageCache[fileId] = imageUrl;
 
-    const response = await fetch(apiUrl);
-
-    const imageUrl = (await response.text()).trim();
-
-    imageCache[fileId] = imageUrl;
-
-    return imageUrl;
-  }
-
-  imageCache[fileId] = url;
-
-  return url;
-  }
+  return imageUrl;
+}
 
 // ==============================
 // 【表示】カード描画（完全版・安定版）
@@ -782,7 +769,8 @@ async function initApp() {
 
   const promises = [];
 
-cards.slice(0, 3).forEach(c => {
+  // meaning画像（最初の3枚だけ）
+  cards.slice(0, 3).forEach(c => {
 
     if(isValidId(c.meaningImg)){
       promises.push(getImageCached(c.meaningImg));
@@ -790,6 +778,7 @@ cards.slice(0, 3).forEach(c => {
 
   });
 
+  // 日本語画像（全部）
   cards.forEach(c => {
 
     if(isValidId(c.hiraImg)){
@@ -798,19 +787,7 @@ cards.slice(0, 3).forEach(c => {
 
   });
 
-    if(isValidId(c.meaningImg)){
-      promises.push(getImageCached(c.meaningImg));
-    }
-
-  });
-
-  if(isValidId(c.hiraImg)){
-    promises.push(getImageCached(c.hiraImg));
-  }
-
-});
-
-await Promise.all(promises);
+  await Promise.all(promises);
 
   // ② ロゴ表示時間
   await new Promise(r => setTimeout(r, 800));
