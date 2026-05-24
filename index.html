@@ -355,13 +355,11 @@ async function showCard(){
     // cache無し
     else if(isValidId(c.meaningImg)){
 
-      getImageCached(c.meaningImg).then(src => {
+      const src = await getImageCached(c.meaningImg);
 
-        if(currentIndex !== index) return;
+      if(currentIndex !== index) return;
 
-        meaningFront.src = src;
-
-      });
+      meaningFront.src = src;
 
     }
 
