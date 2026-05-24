@@ -229,7 +229,7 @@ body{
   <!-- ==============================
   【ロゴ】初回表示
   ============================== -->
-  <div id="loading" style="display:none;">
+  <div id="loading">
     <img id="logoImg" style="width:200px;">
   </div>
 
@@ -509,14 +509,7 @@ async function showCard(){
     getImageCached(nextCard.hiraImg);
   }
 
-  // 2枚先 日本語画像
-  if(
-    nextNextCard &&
-    isValidId(nextNextCard.hiraImg) &&
-    !imageCache[nextNextCard.hiraImg]
-  ){
-    getImageCached(nextNextCard.hiraImg);
-  }
+  
 
 }
 
@@ -634,6 +627,20 @@ window.addEventListener("load", async () => {
   await new Promise(r => setTimeout(r, 500));
 
 });
+
+// ==============================
+// 【ロゴ】読み込み
+// ==============================
+const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
+
+google.script.run.withSuccessHandler(function(base64){
+
+  document.getElementById("logoImg").src =
+    "data:image/png;base64," + base64;
+
+  setHeaderLogo();
+
+}).getImage(LOGO_FILE_ID);
 
 // ==============================
 // タイトル更新
