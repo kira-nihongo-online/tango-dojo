@@ -462,19 +462,18 @@ async function showCard(){
 
   const settings = getSettings();
 
+  // 少し待って画像描画優先
+  await new Promise(r => setTimeout(r, 80));
+
   if(settings.sound === "on" && !skipVoice){
 
     if(isFront){
 
-      setTimeout(() => {
-        Voice.speakJP(cards[index].hira || "");
-      }, 50);
+      Voice.speakJP(cards[index].hira || "");
 
     }else{
 
-      setTimeout(() => {
-        Voice.speakTH(cards[index].thai || "");
-      }, 50);
+      Voice.speakTH(cards[index].thai || "");
 
     }
 
