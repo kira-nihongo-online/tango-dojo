@@ -271,6 +271,8 @@ let isReady = false;
 
 const imageCache = {};
 
+const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
+
 // ==============================
 // URL lesson取得
 // ==============================
@@ -625,6 +627,12 @@ window.addEventListener("load", async () => {
   Voice.init();
 
   await new Promise(r => setTimeout(r, 500));
+
+  const logoUrl = await getImageCached(LOGO_FILE_ID);
+
+  document.getElementById("logoImg").src = logoUrl;
+
+  setHeaderLogo();
 
 });
 
