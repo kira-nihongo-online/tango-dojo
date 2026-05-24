@@ -628,12 +628,6 @@ window.addEventListener("load", async () => {
 
   await new Promise(r => setTimeout(r, 500));
 
-  const logoUrl = await getImageCached(LOGO_FILE_ID);
-
-  document.getElementById("logoImg").src = logoUrl;
-
-  setHeaderLogo();
-
 });
 
 // ==============================
@@ -812,6 +806,12 @@ async function initApp() {
   getSettings();
 
   isFront = true;
+
+  const logoUrl = await getImageCached(LOGO_FILE_ID);
+
+  document.getElementById("logoImg").src = logoUrl;
+
+  setHeaderLogo();
 
   // =========================
   // meaning画像だけ先読み
