@@ -32,7 +32,7 @@ body{
   align-items: center;
   width:100%;
 }
- 
+
 .top{
   display:flex;
   justify-content:center;
@@ -313,7 +313,7 @@ async function getImageCached(fileId){
 // ==============================
 // 【表示】カード描画
 // ==============================
-function showCard(){
+async function showCard(){
 
   if(!cards.length) return;
 
@@ -878,7 +878,7 @@ initApp();
 
     <h3>設定</h3>
 
-   
+
 
     <!-- 音声 -->
     <div class="setting-row">
