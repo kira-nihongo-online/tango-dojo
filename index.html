@@ -496,7 +496,18 @@ async function showCard(){
     getImageCached(nextCard.meaningImg);
   }
 
+  // 次カード 日本語画像 先読み
+  if(
+    nextCard &&
+    isValidId(nextCard.hiraImg) &&
+    !imageCache[nextCard.hiraImg]
+  ){
+    getImageCached(nextCard.hiraImg);
+  }
+
 }
+
+
 
 // ==============================
 // クリック
