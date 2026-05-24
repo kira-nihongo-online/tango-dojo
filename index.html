@@ -488,6 +488,10 @@ async function showCard(){
 
   const nextCard = cards[nextIndex];
 
+  const nextNextIndex = (index + 2) % cards.length;
+
+  const nextNextCard = cards[nextNextIndex];
+
   if(
     nextCard &&
     isValidId(nextCard.meaningImg) &&
@@ -503,6 +507,15 @@ async function showCard(){
     !imageCache[nextCard.hiraImg]
   ){
     getImageCached(nextCard.hiraImg);
+  }
+
+  // 2枚先 日本語画像
+  if(
+    nextNextCard &&
+    isValidId(nextNextCard.hiraImg) &&
+    !imageCache[nextNextCard.hiraImg]
+  ){
+    getImageCached(nextNextCard.hiraImg);
   }
 
 }
