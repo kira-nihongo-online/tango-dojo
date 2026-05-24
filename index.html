@@ -382,14 +382,12 @@ async function showCard(){
     // cache無し
     else if(isValidId(c.hiraImg)){
 
-      getImageCached(c.hiraImg).then(src => {
+      const src = await getImageCached(c.hiraImg);
 
-        if(currentIndex !== index) return;
+      if(currentIndex !== index) return;
 
-        img.src = src;
-        img.style.display = "block";
-
-      });
+      img.src = src;
+      img.style.display = "block";
 
     }
 
