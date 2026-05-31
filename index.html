@@ -563,6 +563,13 @@ const Voice = (function(){
 
       const voices = speechSynthesis.getVoices();
 
+      console.log("===== VOICES =====");
+
+      voices.forEach(v => {
+        console.log(v.name, "|", v.lang);
+      });
+     
+
       voiceJP =
         voices.find(v => v.name.includes("Nanami")) ||
         voices.find(v => v.name.includes("Haruka"));
