@@ -571,11 +571,12 @@ const Voice = (function(){
      
 
       voiceJP =
-        voices.find(v => v.name.includes("Nanami")) ||
-        voices.find(v => v.name.includes("Haruka"));
+        voices.find(v => v.name.includes("七海")) ||
+        voices.find(v => v.lang === "ja-JP");
 
       voiceTH =
-        voices.find(v => v.name.includes("Premwadee"));
+        voices.find(v => v.name.includes("เปรมวดี")) ||
+        voices.find(v => v.lang === "th-TH");
 
       if(voiceJP || voiceTH){
         ready = true;
