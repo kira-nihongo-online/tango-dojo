@@ -509,7 +509,14 @@ async function showCard(){
     getImageCached(nextCard.hiraImg);
   }
 
-
+  // 2枚先 日本語画像 先読み
+  if(
+    nextNextCard &&
+    isValidId(nextNextCard.hiraImg) &&
+    !imageCache[nextNextCard.hiraImg]
+  ){
+    getImageCached(nextNextCard.hiraImg);
+  }
 
 }
 
