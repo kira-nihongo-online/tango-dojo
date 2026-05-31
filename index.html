@@ -568,7 +568,7 @@ const Voice = (function(){
       voices.forEach(v => {
         console.log(v.name, "|", v.lang);
       });
-     
+
 
       voiceJP =
         voices.find(v => v.name.includes("七海")) ||
@@ -816,15 +816,17 @@ async function initApp() {
 
   cards = data || [];
 
+  const lesson = getLesson();
+
+  if (lesson) {
+
+    cards = cards.filter(
+      c => String(c.lessonNo) === String(lesson)
+    );
+
+  }
+
   getSettings();
-
-  isFront = true;
-
-  const logoUrl = await getImageCached(LOGO_FILE_ID);
-
-  document.getElementById("logoImg").src = logoUrl;
-
-  setHeaderLogo();
 
   // =========================
   // meaning画像だけ先読み
