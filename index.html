@@ -279,7 +279,6 @@ let isReady = false;
 
 const imageCache = {};
 
-const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
 
 // ==============================
 // URL lesson取得
@@ -688,10 +687,11 @@ function updateTitle() {
 // ==============================
 function setHeaderLogo() {
 
-  const headerLogo = document.getElementById("headerLogo");
-  const logoImg = document.getElementById("logoImg");
+  document.getElementById("headerLogo").src =
+    "トータルロゴ.png";
 
-  headerLogo.src = logoImg.src;
+  document.getElementById("logoImg").src =
+    "トータルロゴ.png";
 
 }
 
@@ -869,6 +869,8 @@ async function initApp() {
   // ローディング
   // =========================
   await new Promise(r => setTimeout(r, 800));
+
+  setHeaderLogo();
 
   const loading = document.getElementById("loading");
   const header  = document.getElementById("header");
