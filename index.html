@@ -18,10 +18,11 @@ body{
 
   display:flex;
   flex-direction:column;
-  justify-content:center;
-  align-items:center;
+  justify-content:center;  /* ←追加 */
+  align-items:center;      /* ←追加 */
 
-  transform: translateY(0px);
+  transform: translateY(40px);
+
 }
 
 #front, #back{
@@ -35,10 +36,11 @@ body{
 .top{
   display:flex;
   justify-content:center;
-  align-items:center;
-  height:200px;
-  margin-top:60px;
-  overflow:hidden;
+  align-items:flex-end;
+  height: 200px;
+
+  margin-top:60px;  /* ←ここに移動 */
+
 }
 
 .bottom{
@@ -51,13 +53,8 @@ body{
 }
 
 #jpImg{
-  max-height:180px;
-  max-width:300px;
-
-  width:auto;
-  height:auto;
-
-  object-fit:contain;
+  height: 180px;      /* ←好きなサイズに調整OK */
+  object-fit: contain;
 }
 
 #meaningFront, #meaningBack{
@@ -232,7 +229,7 @@ body{
   <!-- ==============================
   【ロゴ】初回表示
   ============================== -->
-  <div id="loading" style="text-align:center;">
+  <div id="loading">
     <img id="logoImg" style="width:200px;">
   </div>
 
@@ -269,12 +266,12 @@ let index = 0;
 let isFront = true;
 
 let skipVoice = false;
-
 let isFirstLoad = true;
-
 let isReady = false;
 
 const imageCache = {};
+
+const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
 
 // ==============================
 // URL lesson取得
@@ -294,32 +291,35 @@ function isValidId(v){
 // ==============================
 // 【画像】キャッシュ取得
 // ==============================
-function getImageCached(fileId){
-  return new Promise((resolve)=>{
-    if(!fileId) return resolve(null);
-    if(imageCache[fileId]) return resolve(imageCache[fileId]);
+async function getImageCached(fileId){
 
-    google.script.run.withSuccessHandler(function(base64){
-      const src = "data:image/png;base64," + base64;
-      imageCache[fileId] = src;
-      resolve(src);
-    }).getImage(fileId);
-  });
+  if(!fileId) return null;
+
+  if(imageCache[fileId]){
+    return imageCache[fileId];
+  }
+
+  const apiUrl =
+    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec?image='
+    + fileId;
+
+  const response = await fetch(apiUrl);
+
+  const imageUrl = (await response.text()).trim();
+
+  imageCache[fileId] = imageUrl;
+
+  return imageUrl;
 }
 
 // ==============================
-// 【表示】カード描画（完全版・安定版）
+// 【表示】カード描画
 // ==============================
-function showCard(){
+async function showCard(){
+
   if(!cards.length) return;
 
   const c = cards[index];
-
-  // ===== デバッグ =====
-  console.log("index:", index);
-  console.log("meaningImg:", c.meaningImg);
-  console.log("hiraImg:", c.hiraImg);
-  console.log("memo:", c.memo);
 
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
@@ -333,43 +333,62 @@ function showCard(){
   if(isFront){
 
     const meaningFront = document.getElementById("meaningFront");
-    meaningFront.src = "";
-
-    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
-    const currentIndex = index;
-
-    if(meaningUrl){
-      const imgObj = new Image();
-
-      imgObj.onload = () => {
-        if(currentIndex !== index) return;
-        meaningFront.src = meaningUrl;
-      };
-
-      imgObj.src = meaningUrl;
-
-    }else{
-      meaningFront.src = "";
-    }
-
     const img = document.getElementById("jpImg");
+
+    meaningFront.src = "";
     img.src = "";
     img.style.display = "none";
 
-    const url = isValidId(c.hiraImg) ? imageCache[c.hiraImg] : "";
+    const currentIndex = index;
 
-    if(url){
-      const currentIndex2 = index;
+    // -------------------------
+    // meaning画像
+    // -------------------------
+    const meaningUrl = isValidId(c.meaningImg)
+      ? imageCache[c.meaningImg]
+      : "";
 
-      const imgObj2 = new Image();
+    // cache済み
+    if(meaningUrl){
 
-      imgObj2.onload = () => {
-        if(currentIndex2 !== index) return;
-        img.src = url;
-        img.style.display = "block";
-      };
+      meaningFront.src = meaningUrl;
 
-      imgObj2.src = url;
+    }
+    // cache無し
+    else if(isValidId(c.meaningImg)){
+
+      const src = await getImageCached(c.meaningImg);
+
+      if(currentIndex !== index) return;
+
+      meaningFront.src = src;
+
+    }
+
+    // -------------------------
+    // 日本語画像
+    // -------------------------
+    const jpUrl = isValidId(c.hiraImg)
+      ? imageCache[c.hiraImg]
+      : "";
+
+    // cache済み
+    if(jpUrl){
+
+      img.src = jpUrl;
+      img.style.display = "block";
+
+    }
+    // cache無し
+    else if(isValidId(c.hiraImg)){
+
+      const src = await getImageCached(c.hiraImg);
+
+      if(currentIndex !== index) return;
+
+      img.src = src;
+      img.style.display = "block";
+
     }
 
     front.style.display = "flex";
@@ -384,34 +403,42 @@ function showCard(){
     const meaningBack = document.getElementById("meaningBack");
     meaningBack.src = "";
 
-    const meaningUrl = isValidId(c.meaningImg) ? imageCache[c.meaningImg] : "";
     const currentIndex = index;
 
+    const meaningUrl = isValidId(c.meaningImg)
+      ? imageCache[c.meaningImg]
+      : "";
+
     if(meaningUrl){
-      const imgObj = new Image();
 
-      imgObj.onload = () => {
+      meaningBack.src = meaningUrl;
+
+    }else if(isValidId(c.meaningImg)){
+
+      getImageCached(c.meaningImg).then(src => {
+
         if(currentIndex !== index) return;
-        meaningBack.src = meaningUrl;
-      };
 
-      imgObj.src = meaningUrl;
+        meaningBack.src = src;
 
-    }else{
-      meaningBack.src = "";
+      });
+
     }
 
     const settings = getSettings();
-    const mode = settings.mode || "jp2th";
 
     document.getElementById("thai").textContent = c.thai || "";
     document.getElementById("eng").textContent  = c.eng || "";
 
     if(settings.memo === "on"){
+
       document.getElementById("memo").style.display = "block";
       document.getElementById("memo").textContent = c.memo || "";
+
     }else{
+
       document.getElementById("memo").style.display = "none";
+
     }
 
     back.style.display = "flex";
@@ -421,7 +448,8 @@ function showCard(){
   // UI
   // =========================
   document.getElementById("progress").textContent =
-    (index + 1) + "/" + cards.length + (isFront ? "（日本語）" : "（タイ語）");
+    (index + 1) + "/" + cards.length +
+    (isFront ? "（日本語）" : "（タイ語）");
 
   updateTitle();
 
@@ -430,225 +458,306 @@ function showCard(){
   // =========================
   if(isFirstLoad){
     isFirstLoad = false;
-  }else{
+  }
 
-    const settings = getSettings();
+  const settings = getSettings();
 
-    if(settings.sound === "on" && !skipVoice){
+  // 少し待って画像描画優先
+  await new Promise(r => setTimeout(r, 80));
 
-      if(isFront){
-        setTimeout(() => {
-          Voice.speakJP(cards[index].hira || "");
-        }, 50);
-      }else{
-        setTimeout(() => {
-          Voice.speakTH(cards[index].thai || "");
-        }, 50);
-      }
+  if(settings.sound === "on" && !skipVoice){
+
+    if(isFront){
+
+      Voice.speakJP(cards[index].hira || "");
+
+    }else{
+
+      Voice.speakTH(cards[index].thai || "");
 
     }
+
   }
 
   skipVoice = false;
+
+  // =========================
+  // 次カード meaning画像先読み
+  // =========================
+  const nextIndex = (index + 1) % cards.length;
+
+  const nextCard = cards[nextIndex];
+
+  const nextNextIndex = (index + 2) % cards.length;
+
+  const nextNextCard = cards[nextNextIndex];
+
+  if(
+    nextCard &&
+    isValidId(nextCard.meaningImg) &&
+    !imageCache[nextCard.meaningImg]
+  ){
+    getImageCached(nextCard.meaningImg);
+  }
+
+  // 次カード 日本語画像 先読み
+  if(
+    nextCard &&
+    isValidId(nextCard.hiraImg) &&
+    !imageCache[nextCard.hiraImg]
+  ){
+    getImageCached(nextCard.hiraImg);
+  }
+
+  // 2枚先 日本語画像 先読み
+  if(
+    nextNextCard &&
+    isValidId(nextNextCard.hiraImg) &&
+    !imageCache[nextNextCard.hiraImg]
+  ){
+    getImageCached(nextNextCard.hiraImg);
+  }
+
 }
 
+
+
+// ==============================
 // クリック
+// ==============================
 document.body.addEventListener("click", function(e){
 
-  // ★ 追加（これが超重要）
   if (e.target.closest("#settingModal")) return;
-
   if (e.target.closest("#checkBtn")) return;
   if (e.target.closest("#settingBtn")) return;
 
   if(!cards.length) return;
 
   if(isFront){
+
     isFront = false;
+
   }else{
+
     index = (index + 1) % cards.length;
     isFront = true;
+
   }
 
   showCard();
+
 });
 
 // ==============================
-// Voice Controller（JP+TH / 女性音声固定）
+// Voice Controller
 // ==============================
 const Voice = (function(){
+
   let ready = false;
   let voiceJP = null;
   let voiceTH = null;
 
-// ------------------------------
-// 初期化（Windows音声固定・完成版）
-// ------------------------------
-function init(){
+  function init(){
 
-  const setVoices = () => {
+    const setVoices = () => {
 
-    const voices = speechSynthesis.getVoices();
+      const voices = speechSynthesis.getVoices();
 
-    console.table(
-      voices.map(v => ({
-        name: v.name,
-        lang: v.lang
-      }))
-    );
+      console.log("===== VOICES =====");
 
-    // 日本語（Nanami固定）
-    voiceJP =
-      voices.find(v => v.name.includes("Haruka"));
+      voices.forEach(v => {
+        console.log(v.name, "|", v.lang);
+      });
 
-    // タイ語（Premwadee固定）
-    voiceTH =
-      voices.find(v => v.name.includes("Premwadee"));
 
-    if(voices.length > 0){
-      ready = true;
-    }
+      voiceJP =
+        voices.find(v => v.name.includes("七海")) ||
+        voices.find(v => v.lang === "ja-JP");
 
-    console.log(voiceJP);
-    console.log(voiceTH);
+      voiceTH =
+        voices.find(v => v.name.includes("เปรมวดี")) ||
+        voices.find(v => v.lang === "th-TH");
 
-  };
+      if(voiceJP || voiceTH){
+        ready = true;
+      }
 
-  setVoices();
+    };
 
-  speechSynthesis.onvoiceschanged = setVoices;
-}
+    setVoices();
 
-  // ------------------------------
-  // 日本語再生
-  // ------------------------------
+    speechSynthesis.onvoiceschanged = setVoices;
+  }
+
   function speakJP(text){
     speak(text, voiceJP, "ja-JP");
   }
 
-  // ------------------------------
-  // タイ語再生
-  // ------------------------------
   function speakTH(text){
     speak(text, voiceTH, "th-TH");
   }
 
-// ------------------------------
-// 共通再生（安定版）
-// ------------------------------
-function speak(text, voice, lang){
-  if(!text) return;
+  function speak(text, voice, lang){
 
-  const uttr = new SpeechSynthesisUtterance(text);
-  uttr.lang = lang;
+    if(!ready) return;
+    if(!text) return;
 
-  if(voice){
-    uttr.voice = voice;
-    uttr.voiceURI = voice.name;
+    speechSynthesis.getVoices();
+
+    const uttr = new SpeechSynthesisUtterance(text);
+
+    uttr.lang = lang;
+
+    uttr.rate = 1;
+    uttr.pitch = 1;
+    uttr.volume = 1;
+
+    if(voice){
+      uttr.voice = voice;
+    }
+
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      speechSynthesis.speak(uttr);
+    }, 50);
+
   }
-
-console.log(uttr.voice);
-
-  speechSynthesis.cancel();
-  speechSynthesis.speak(uttr);
-}
 
   return {
     init,
     speakJP,
     speakTH
   };
+
 })();
 
-window.addEventListener("load", () => {
+// ==============================
+// Voice初期化
+// ==============================
+window.addEventListener("load", async () => {
+
   Voice.init();
+
+  await new Promise(r => setTimeout(r, 500));
+
 });
 
 // ==============================
 // 【ロゴ】読み込み
 // ==============================
+/*
 const LOGO_FILE_ID = "1c0CEfdeVic3rjgzQcDRWa5C11yzJrl1w";
 
 google.script.run.withSuccessHandler(function(base64){
+
   document.getElementById("logoImg").src =
     "data:image/png;base64," + base64;
 
-    setHeaderLogo();
-}).getImage(LOGO_FILE_ID);
+  setHeaderLogo();
 
-// ===================== タイトル更新 =====================
+}).getImage(LOGO_FILE_ID);
+*/
+
+// ==============================
+// タイトル更新
+// ==============================
 function updateTitle() {
+
   const titleEl = document.getElementById("title");
 
   const card = cards[index];
 
-  // A列（教材） + C列（課）
-  titleEl.textContent = `${card.title} - ${card.lesson}`;
+  titleEl.textContent =
+    `${card.title} - ${card.lesson}`;
+
 }
 
-// ===================== ヘッダーロゴ設定 =====================
+// ==============================
+// ヘッダーロゴ
+// ==============================
 function setHeaderLogo() {
+
   const headerLogo = document.getElementById("headerLogo");
   const logoImg = document.getElementById("logoImg");
 
   headerLogo.src = logoImg.src;
+
 }
 
 // ==============================
-// 【音声】現在カードの音声再生（手動用）
+// 手動音声
 // ==============================
 function playCurrentVoice(){
+
   if(!cards.length) return;
 
   const c = cards[index];
 
   if(isFront){
+
     Voice.speakJP(c.hira || "");
+
   }else{
+
     Voice.speakTH(c.thai || "");
+
   }
+
 }
 
 // ==============================
-// 【音声ボタン】クリック再生
+// 音声ボタン
 // ==============================
 document.getElementById("speakBtn").addEventListener("click", (e) => {
 
-  e.stopPropagation(); // ←カード送り防止
+  e.stopPropagation();
 
   playCurrentVoice();
 
 });
 
 // ==============================
-// 【設定】開く＋状態反映
+// 設定
 // ==============================
 function openSettings(){
+
   const settings = getSettings();
 
-  document.querySelector(`input[name="sound"][value="${settings.sound}"]`).checked = true;
-  document.querySelector(`input[name="memo"][value="${settings.memo}"]`).checked = true;
+  document.querySelector(
+    `input[name="sound"][value="${settings.sound}"]`
+  ).checked = true;
 
-  const orderEl = document.querySelector(`input[name="order"][value="${settings.order}"]`);
+  document.querySelector(
+    `input[name="memo"][value="${settings.memo}"]`
+  ).checked = true;
+
+  const orderEl = document.querySelector(
+    `input[name="order"][value="${settings.order}"]`
+  );
+
   if(orderEl) orderEl.checked = true;
 
   document.getElementById("settingModal").style.display = "block";
+
 }
 
-// ==============================
-// 【設定】閉じる
-// ==============================
 function closeSettings(){
+
   document.getElementById("settingModal").style.display = "none";
+
 }
 
-// ==============================
-// 【設定】保存
-// ==============================
 function saveSettings(){
-  const sound = document.querySelector('input[name="sound"]:checked').value;
-  const memo  = document.querySelector('input[name="memo"]:checked').value;
-  const order = document.querySelector('input[name="order"]:checked').value;
+
+  const sound =
+    document.querySelector('input[name="sound"]:checked').value;
+
+  const memo =
+    document.querySelector('input[name="memo"]:checked').value;
+
+  const order =
+    document.querySelector('input[name="order"]:checked').value;
 
   localStorage.setItem("settings", JSON.stringify({
     sound: sound,
@@ -657,17 +766,17 @@ function saveSettings(){
   }));
 
   closeSettings();
+
 }
 
-// ==============================
-// 【設定】取得（修正版）
-// ==============================
 function getSettings() {
-  const settings = JSON.parse(localStorage.getItem("settings")) || {
-    sound: "on",
-    memo: "on",
-    order: "normal"
-  };
+
+  const settings =
+    JSON.parse(localStorage.getItem("settings")) || {
+      sound: "on",
+      memo: "on",
+      order: "normal"
+    };
 
   document.querySelectorAll('input[name="sound"]').forEach(r => {
     r.checked = (r.value === settings.sound);
@@ -682,95 +791,134 @@ function getSettings() {
   });
 
   return settings;
+
 }
 
-// 👇そのまま残す
 document.getElementById("settingBtn").addEventListener("click", (e) => {
+
   e.stopPropagation();
+
   openSettings();
+
 });
 
 // =========================
-// 初期起動 一本化（完成版）
+// 初期起動
 // =========================
 async function initApp() {
 
-  // ① データ取得
-  const data = await new Promise(resolve => {
-    google.script.run.withSuccessHandler(resolve).getAllCards();
-  });
+  // データ取得
+  const response = await fetch(
+    'https://script.google.com/macros/s/AKfycbw5uC6lwJf3LVCLPaCjfUw0DpwvsflywLcS6V2-1HaxcxUNqlf44ovlE7AHFfrEm1g/exec'
+  );
+
+  const data = await response.json();
 
   cards = data || [];
 
-  const settings = getSettings();
+  const lesson = getLesson();
 
-  if(settings.order === "random"){
-    cards.sort(() => Math.random() - 0.5);
+  if (lesson) {
+
+    cards = cards.filter(
+      c => String(c.lessonNo) === String(lesson)
+    );
+
   }
 
-  isFront = true;
+  getSettings();
 
+  // =========================
+  // meaning画像だけ先読み
+  // =========================
   const promises = [];
-  cards.forEach(c=>{
-    if(isValidId(c.meaningImg)) promises.push(getImageCached(c.meaningImg));
-    if(isValidId(c.hiraImg))    promises.push(getImageCached(c.hiraImg));
+
+  cards.slice(0, 1).forEach(c => {
+
+    if(isValidId(c.meaningImg)){
+
+      promises.push(
+        getImageCached(c.meaningImg)
+      );
+
+    }
+
+    if(isValidId(c.hiraImg)){
+
+      promises.push(
+        getImageCached(c.hiraImg)
+      );
+
+    }
+
   });
 
   await Promise.all(promises);
 
-  // ② ロゴ表示時間
+  // =========================
+  // ローディング
+  // =========================
   await new Promise(r => setTimeout(r, 800));
 
-  // ③ ロゴ消す
   const loading = document.getElementById("loading");
-  const header = document.getElementById("header");
+  const header  = document.getElementById("header");
 
   loading.style.opacity = "0";
 
   await new Promise(r => setTimeout(r, 200));
 
   loading.style.display = "none";
+
   header.style.display = "flex";
 
-  // ④ 初回表示（ここだけ）
-  isFirstLoad = false;
+  document.getElementById("front").style.display = "flex";
+
+  // 初回表示
   showCard();
 
-  isReady = true;  // ←追加
+  isReady = true;
 
-    // ★ここ！！
   document.body.focus();
   window.focus();
 
-  // ★ここに入れる！！！！
+  // =========================
+  // キーボード
+  // =========================
   document.addEventListener("keydown", function(e){
-
-    console.log(e.key);  // ←追加
 
     if(!isReady) return;
 
     if(e.key === "Enter"){
+
       if(isFront){
+
         isFront = false;
+
       }else{
+
         isFront = true;
         index = (index + 1) % cards.length;
+
       }
+
       showCard();
+
     }
 
     if(e.key === "Backspace"){
+
       e.preventDefault();
 
-    if(isFront){
-      // 表（日本語） → 前のカードの裏（タイ語）
-      index = (index - 1 + cards.length) % cards.length;
-      isFront = false;
+      if(isFront){
 
-    }else{
-      // 裏（タイ語） → 同じカードの表（日本語）
-      isFront = true;
-    }
+        index = (index - 1 + cards.length) % cards.length;
+        isFront = false;
+
+      }else{
+
+        isFront = true;
+
+      }
 
       showCard();
 
@@ -780,10 +928,8 @@ async function initApp() {
 
 }
 
-initApp();  
-
+initApp();
 </script>
-
 <!-- ==============================
 【設定モーダル】
 ============================== -->
