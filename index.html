@@ -824,6 +824,12 @@ async function initApp() {
 
   getSettings();
 
+  const settings = getSettings();
+
+  if(settings.order === "random"){
+    cards.sort(() => Math.random() - 0.5);
+  }
+
   // =========================
   // meaning画像だけ先読み
   // =========================
